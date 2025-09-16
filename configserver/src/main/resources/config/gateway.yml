@@ -1,0 +1,38 @@
+server:
+  port: 8083
+
+jwt:
+  secret: ThisIsASecretKeyForJWTGenerationAndValidationThatIsLongEnough
+
+spring:
+  application:
+    name: gateway
+  cloud:
+    gateway:
+      routes:
+        # 1️⃣ Auth Service (completely public)
+        - id: auth_service_route
+          uri: http://localhost:8080
+          predicates:
+            - Path=/auth/**  # all /auth endpoints
+          filters:
+            - StripPrefix=0
+
+        # 2️⃣ User Service (requires USER or ADMIN JWT)
+        - id: user_service_route
+          uri: http://localhost:8081
+          predicates:
+            - Path=/api/users/**  # all /users endpoints
+          filters:
+            - StripPrefix=0 # your custom JWT filter enforcing roles
+            - AuthFilter
+
+        # 3️⃣ Driver Service
+        - id: driver_service_route
+          uri: http://localhost:8084
+          predicates:
+            - Path=/api/drivers/**
+          filters:
+            - StripPrefix=0
+            - AuthFilter
+
