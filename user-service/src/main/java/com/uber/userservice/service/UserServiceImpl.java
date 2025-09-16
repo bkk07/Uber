@@ -1,8 +1,5 @@
 package com.uber.userservice.service;
-import com.uber.userservice.dto.UserAuthResponse;
-import com.uber.userservice.dto.UserRegisterRequest;
-import com.uber.userservice.dto.UserResponse;
-import com.uber.userservice.dto.UserUpdateRequest;
+import com.uber.userservice.dto.*;
 import com.uber.userservice.entity.User;
 import com.uber.userservice.enums.UserRole;
 import com.uber.userservice.exception.DuplicateUserException;
@@ -14,6 +11,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -112,6 +110,22 @@ public class UserServiceImpl implements UserService {
         userAuthResponse.setRole(String.valueOf(credential.getUserRole()));
         return userAuthResponse;
     }
+
+    @Override
+    public RideUserResponse getUserSummary(Long id) {
+        Optional<User> user = userRepository.findById(id);
+        if(user.isPresent()){
+            return RideUserResponse
+                    .builder()
+                    .id(user.get().getId())
+                    .username(user.get().getUsername())
+                    .email(user.get().getEmail())
+                    .phone(user.get().getPhone())
+                    .build();
+        }
+        throw new UserNotFoundException("User not found with ID: " + id);
+    }
+
     private UserResponse mapToUserResponse(User user) {
         return UserResponse.builder()
                 .id(user.getId())

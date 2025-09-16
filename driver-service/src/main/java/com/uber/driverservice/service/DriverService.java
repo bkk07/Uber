@@ -1,5 +1,6 @@
 package com.uber.driverservice.service;
 
+import com.uber.driverservice.dto.DriverDto;
 import com.uber.driverservice.enums.DriverStatus;
 import com.uber.driverservice.dto.DriverAuthResponse;
 import com.uber.driverservice.dto.DriverRequest;
@@ -14,9 +15,9 @@ public interface DriverService {
     List<DriverResponse> getAllDrivers();
     DriverResponse updateDriver(Long id, DriverRequest request);
     void deleteDriver(Long id);
-    DriverResponse updateStatus(Long id, DriverStatus status);
+    void updateStatus(Long id, DriverStatus status);
     DriverResponse updateLocation(Long id, double latitude, double longitude);
     List<DriverResponse> getAllAvailableDrivers(); // Exposing the custom repository method
-    Optional<DriverResponse> findNearestDriver(double pickupLat, double pickupLon);
+    List<DriverDto> findNearestDriver(double pickupLat, double pickupLon, int limit);
     DriverAuthResponse driverExists(String loginId, String password);
 }

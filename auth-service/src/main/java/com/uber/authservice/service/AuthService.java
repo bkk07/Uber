@@ -19,7 +19,6 @@ public class AuthService {
     public DriverAuthResponse authenticateDriver(String loginId, String password) {
         return driverServiceFeign.driverExists(loginId,password);
     }
-
     public AdminAuthResponse authenticateAdmin(String loginId, String password) {
         return adminServiceFeign.adminExists(loginId,password);
     }

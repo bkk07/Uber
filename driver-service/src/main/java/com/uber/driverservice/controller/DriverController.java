@@ -1,5 +1,6 @@
 package com.uber.driverservice.controller;
 
+import com.uber.driverservice.dto.DriverDto;
 import com.uber.driverservice.enums.DriverStatus;
 import com.uber.driverservice.dto.DriverAuthResponse;
 import com.uber.driverservice.dto.DriverRequest;
@@ -73,11 +74,11 @@ public class DriverController {
     }
 
     @PutMapping("/{id}/status")
-    public ResponseEntity<DriverResponse> updateStatus(
+    public void updateDriverStatus(
             @PathVariable Long id,
             @RequestParam @NotNull(message = "Availability status cannot be null") DriverStatus status) {
-        DriverResponse updatedDriver = driverService.updateStatus(id, status);
-        return new ResponseEntity<>(updatedDriver, HttpStatus.OK);
+        driverService.updateStatus(id, status);
+        return ;
     }
 
     @PutMapping("/{id}/location")
@@ -89,17 +90,12 @@ public class DriverController {
         return new ResponseEntity<>(updatedDriver, HttpStatus.OK);
     }
 
-    @GetMapping("/nearest")
-    public ResponseEntity<DriverResponse> getNearestDriver(
-            @RequestParam double latitude,
-            @RequestParam double longitude) {
-
-        Optional<DriverResponse> nearestDriver = driverService.findNearestDriver(latitude, longitude);
-
-        if (nearestDriver.isEmpty()) {
-            throw new DriverNotFoundException("No available drivers nearby!");
-        }
-        return ResponseEntity.ok(nearestDriver.get());
+    @GetMapping("/api/drivers/nearby")
+    List<DriverDto> getNearbyDrivers(
+            @RequestParam("latitude") Double latitude,
+            @RequestParam("longitude") Double longitude,
+            @RequestParam(value = "limit", defaultValue = "5") int limit){
+        return driverService.findNearestDriver(latitude,longitude,limit);
     }
     @GetMapping("/validate")
     ResponseEntity<DriverAuthResponse> userExists(

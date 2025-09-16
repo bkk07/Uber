@@ -10,4 +10,5 @@ public interface UserService {
     UserResponse updateUser(Long id, UserUpdateRequest request);
     void deleteUser(Long id);
     UserAuthResponse userExists(String loginId, String password);
+    RideUserResponse getUserSummary(Long id);
 }

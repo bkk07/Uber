@@ -1,9 +1,6 @@
 package com.uber.userservice.controller;
-import com.uber.userservice.dto.UserAuthResponse;
-import com.uber.userservice.dto.UserRegisterRequest;
-import com.uber.userservice.dto.UserResponse;
+import com.uber.userservice.dto.*;
 import com.uber.userservice.service.UserService;
-import com.uber.userservice.dto.UserUpdateRequest;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -23,12 +20,11 @@ public class UserController {
         return new ResponseEntity<>(newUser, HttpStatus.CREATED);
     }
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
     public ResponseEntity<UserResponse> getUserById(@PathVariable Long id) {
         UserResponse user = userService.getUserById(id);
         return ResponseEntity.ok(user);
     }
-
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<UserResponse>> getAllUsers() {
@@ -48,8 +44,6 @@ public class UserController {
     public void deleteUser(@PathVariable Long id) {
         userService.deleteUser(id);
     }
-
-
     @GetMapping("/validate")
     ResponseEntity<UserAuthResponse> userExists(
             @RequestParam("loginId") String loginId,
@@ -59,5 +53,12 @@ public class UserController {
         UserAuthResponse userAuthResponse = userService.userExists(loginId,password);
         System.out.println("This is the response going from user service to the authservice "+userAuthResponse.toString());
         return ResponseEntity.ok(userAuthResponse);
+    }
+
+    // This method is for the ride service for getting user details;
+
+    @GetMapping("/{id}/summary")
+    public ResponseEntity<RideUserResponse> getUserSummary(@PathVariable Long id) {
+        return ResponseEntity.ok(userService.getUserSummary(id));
     }
 }

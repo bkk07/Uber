@@ -12,7 +12,6 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
-
 @Entity
 @Table(name = "users")
 @Data
@@ -23,16 +22,13 @@ public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
     @NotBlank(message = "Username cannot be empty")
     @Column(unique = true, nullable = false)
     private String username;
-
     @NotBlank(message = "Email cannot be empty")
     @Email(message = "Invalid email format")
     @Column(unique = true, nullable = false)
     private String email;
-
     @NotBlank(message = "Phone number cannot be empty")
     @Pattern(regexp = "^\\+?[0-9. ()-]{7,25}$", message = "Invalid phone number format")
     @Column(nullable = false)

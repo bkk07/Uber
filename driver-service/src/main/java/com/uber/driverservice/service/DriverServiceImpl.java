@@ -1,5 +1,6 @@
 package com.uber.driverservice.service;
 import com.uber.driverservice.dto.DriverAuthResponse;
+import com.uber.driverservice.dto.DriverDto;
 import com.uber.driverservice.dto.DriverRequest;
 import com.uber.driverservice.dto.DriverResponse;
 import com.uber.driverservice.enums.DriverRole;
@@ -93,12 +94,11 @@ public class DriverServiceImpl implements DriverService {
         driverRepository.deleteById(id);
     }
     @Override
-    public DriverResponse updateStatus(Long id, DriverStatus status) {
+    public void updateStatus(Long id, DriverStatus status) {
         Driver existingDriver = driverRepository.findById(id)
                 .orElseThrow(() -> new DriverNotFoundException("Driver with id " + id + " not found."));
         existingDriver.setStatus(status);
         Driver updatedDriver = driverRepository.save(existingDriver);
-        return mapToDriverResponse(updatedDriver);
     }
     @Override
     public DriverResponse updateLocation(Long id, double latitude, double longitude) {
@@ -118,6 +118,7 @@ public class DriverServiceImpl implements DriverService {
                 .collect(Collectors.toList());
     }
 
+
     private DriverResponse mapToDriverResponse(Driver driver) {
         return DriverResponse.builder()
                 .id(driver.getId())
@@ -130,22 +131,33 @@ public class DriverServiceImpl implements DriverService {
                 .createdAt(driver.getCreatedAt())
                 .build();
     }
-    public Optional<DriverResponse> findNearestDriver(double pickupLat, double pickupLon) {
+    @Override
+    public List<DriverDto> findNearestDriver(double pickupLat, double pickupLon, int limit) {
         List<Driver> availableDrivers = driverRepository.findByStatus(DriverStatus.ONLINE);
+
         return availableDrivers.stream()
-                .min(Comparator.comparingDouble(
+                .sorted(Comparator.comparingDouble(
                         d -> calculateDistance(pickupLat, pickupLon, d.getLatitude(), d.getLongitude())
                 ))
-                .map(driver->DriverResponse.builder()
+                .limit(limit) // pick only top `limit` drivers
+                .map(driver -> DriverDto.builder()
                         .id(driver.getId())
                         .username(driver.getUsername())
-                        .email(driver.getEmail())
                         .phone(driver.getPhone())
-                        .status(driver.getStatus())
                         .latitude(driver.getLatitude())
                         .longitude(driver.getLongitude())
-                        .createdAt(driver.getCreatedAt())
-                        .build());
+                        .build())
+                .toList();
+    }
+    private double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
+        final int R = 6371; // Earth radius in km
+        double latDistance = Math.toRadians(lat2 - lat1);
+        double lonDistance = Math.toRadians(lon2 - lon1);
+        double a = Math.sin(latDistance / 2) * Math.sin(latDistance / 2)
+                + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))
+                * Math.sin(lonDistance / 2) * Math.sin(lonDistance / 2);
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return R * c;
     }
 
     @Override
@@ -171,14 +183,4 @@ public class DriverServiceImpl implements DriverService {
         return userAuthResponse;
     }
 
-    private double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
-        final int R = 6371; // Earth radius in km
-        double latDistance = Math.toRadians(lat2 - lat1);
-        double lonDistance = Math.toRadians(lon2 - lon1);
-        double a = Math.sin(latDistance / 2) * Math.sin(latDistance / 2)
-                + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))
-                * Math.sin(lonDistance / 2) * Math.sin(lonDistance / 2);
-        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        return R * c;
-    }
 }

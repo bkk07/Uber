@@ -1,6 +1,6 @@
-package com.uber.addressservice.config;
+package com.uber.rideservice.config;
 
-import com.uber.addressservice.filter.JwtRequestFilter;
+import com.uber.rideservice.filter.JwtRequestFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -11,10 +11,9 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity // Enable @PreAuthorize
+@EnableMethodSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
     private final JwtRequestFilter jwtRequestFilter;
@@ -23,15 +22,12 @@ public class SecurityConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(authorize -> authorize
-                        // Allow /register for new user creation (simplified here, in reality via Auth Service)
-                        .anyRequest().authenticated() // All other requests require authentication
+                        .anyRequest().authenticated() // All requests require authentication
                 )
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 );
-
         http.addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
-
         return http.build();
     }
 }
