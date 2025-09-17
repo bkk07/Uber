@@ -1,8 +1,8 @@
 spring:
   application:
-    name: ride-service
+    name: notification-service
   datasource:
-    url: jdbc:mysql://localhost:3306/uber_ride
+    url: jdbc:mysql://localhost:3306/uber_notification
     username: root
     password: Kiran@210800
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -19,7 +19,7 @@ logging:
 jwt:
   secret: ThisIsASecretKeyForJWTGenerationAndValidationThatIsLongEnough
 server:
-  port: 8086
+  port: 8087
 eureka:
   client:
     service-url:

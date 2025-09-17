@@ -42,8 +42,7 @@ public class Driver {
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
-    private DriverStatus status = DriverStatus.OFFLINE; // Default to true
-
+    private DriverStatus status = DriverStatus.ONLINE; // Default to true
     private double latitude;
     private double longitude;
 
@@ -54,5 +53,8 @@ public class Driver {
     @NotBlank(message = "Password cannot be empty")
     @Column(nullable = false)
     private String password;
+
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
     private DriverRole driverRole=DriverRole.DRIVER;
 }

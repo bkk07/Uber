@@ -1,5 +1,5 @@
-package com.uber.rideservice.filter;
-import com.uber.rideservice.util.JwtUtil;
+package com.uber.notificationservice.filter;
+import com.uber.notificationservice.util.JwtUtil;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -35,6 +35,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
                 role = jwtUtil.extractRole(jwt);
             } catch (Exception e) {
                 System.err.println("Error extracting JWT claims: " + e.getMessage());
+                // Handle invalid token cases gracefully
                 response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid JWT Token");
                 return;
             }

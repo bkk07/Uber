@@ -10,16 +10,27 @@
         <module name="driver-service" />
         <module name="configserver" />
       </profile>
-      <profile name="Annotation profile for admin-service" enabled="true">
+      <profile name="Annotation profile for address-service" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="false">
+          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.38/lombok-1.18.38.jar" />
+          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.38/lombok-1.18.38.jar" />
+        </processorPath>
+        <module name="address-service" />
+      </profile>
+      <profile name="Annotation profile for notification-service" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <processorPath useClasspath="false">
           <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.38/lombok-1.18.38.jar" />
         </processorPath>
+        <module name="ride-service" />
         <module name="auth-service" />
-        <module name="address-service" />
         <module name="user-service" />
+        <module name="notification-service" />
         <module name="admin-service" />
         <module name="gateway" />
       </profile>
@@ -34,6 +45,8 @@
       <module name="driver-service" options="-parameters" />
       <module name="eureka" options="-parameters" />
       <module name="gateway" options="-parameters" />
+      <module name="notification-service" options="-parameters" />
+      <module name="ride-service" options="-parameters" />
       <module name="user-service" options="-parameters" />
     </option>
   </component>

@@ -40,3 +40,17 @@ spring:
           filters:
             - StripPrefix=0
             - AuthFilter
+        - id: ride_service_route
+          uri: http://localhost:8086
+          predicates:
+            - Path=/api/rides/**
+          filters:
+            - StripPrefix=0
+            - AuthFilter
+        - id: notification_service_route
+          uri: http://localhost:8085
+          predicates:
+            - Path=/api/v1/notifications/**
+          filters:
+            - StripPrefix=0
+            - AuthFilter

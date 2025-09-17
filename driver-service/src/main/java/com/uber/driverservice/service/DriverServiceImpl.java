@@ -134,7 +134,6 @@ public class DriverServiceImpl implements DriverService {
     @Override
     public List<DriverDto> findNearestDriver(double pickupLat, double pickupLon, int limit) {
         List<Driver> availableDrivers = driverRepository.findByStatus(DriverStatus.ONLINE);
-
         return availableDrivers.stream()
                 .sorted(Comparator.comparingDouble(
                         d -> calculateDistance(pickupLat, pickupLon, d.getLatitude(), d.getLongitude())

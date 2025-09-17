@@ -15,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -42,7 +43,15 @@ public class DriverController {
         DriverResponse newDriver = driverService.createDriver(request);
         return new ResponseEntity<>(newDriver, HttpStatus.CREATED);
     }
-
+    @PostMapping("/registerAll")
+    public ResponseEntity<List<DriverResponse>> createDriver(@Valid @RequestBody List<DriverRequest> request) {
+        List<DriverResponse> driverResponses = new ArrayList<>() ;
+        for (DriverRequest driverRequest : request) {
+            DriverResponse newDriver = driverService.createDriver(driverRequest);
+            driverResponses.add(newDriver);
+        }
+        return new ResponseEntity<>(driverResponses, HttpStatus.CREATED);
+    }
     @GetMapping("/{id}")
     public ResponseEntity<DriverResponse> getDriverById(@PathVariable Long id) {
         DriverResponse driver = driverService.getDriverById(id);
@@ -54,7 +63,6 @@ public class DriverController {
         List<DriverResponse> drivers = driverService.getAllDrivers();
         return new ResponseEntity<>(drivers, HttpStatus.OK);
     }
-    @PreAuthorize("hasRole('DRIVER')")
     @GetMapping("/available")
     public ResponseEntity<List<DriverResponse>> getAllAvailableDrivers() {
         List<DriverResponse> availableDrivers = driverService.getAllAvailableDrivers();
@@ -72,7 +80,6 @@ public class DriverController {
         driverService.deleteDriver(id);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
-
     @PutMapping("/{id}/status")
     public void updateDriverStatus(
             @PathVariable Long id,
@@ -107,5 +114,4 @@ public class DriverController {
         System.out.println("This is the response going from driver-service to the auth-service"+userAuthResponse.toString());
         return ResponseEntity.ok(userAuthResponse);
     }
-
 }

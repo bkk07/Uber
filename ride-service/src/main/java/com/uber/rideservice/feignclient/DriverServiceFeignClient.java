@@ -1,5 +1,6 @@
 package com.uber.rideservice.feignclient;
 
+import com.uber.rideservice.config.FeignClientConfig;
 import com.uber.rideservice.dto.DriverDto;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -8,8 +9,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
-
-@FeignClient(name = "driver-service")
+@FeignClient(name = "driver-service" , configuration = FeignClientConfig.class)
 public interface DriverServiceFeignClient {
     @GetMapping("/api/drivers/nearby")
     List<DriverDto> getNearbyDrivers(

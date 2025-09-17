@@ -18,6 +18,6 @@ public interface DriverService {
     void updateStatus(Long id, DriverStatus status);
     DriverResponse updateLocation(Long id, double latitude, double longitude);
     List<DriverResponse> getAllAvailableDrivers(); // Exposing the custom repository method
-    List<DriverDto> findNearestDriver(double pickupLat, double pickupLon, int limit);
+    List<DriverDto>     findNearestDriver(double pickupLat, double pickupLon, int limit);
     DriverAuthResponse driverExists(String loginId, String password);
 }

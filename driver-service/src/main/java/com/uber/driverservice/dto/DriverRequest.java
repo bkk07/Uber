@@ -27,9 +27,9 @@ public class DriverRequest {
     @NotBlank(message = "Phone number cannot be blank")
     @Pattern(regexp = "\\d{10}", message = "Phone number must be 10 digits")
     private String phone;
+
     @NotNull(message = "Availability status cannot be null")
     private DriverStatus status; // Using Boolean wrapper for @NotNull
-
     // For initial creation or full update, location can be provided
     private Double latitude;
     private Double longitude;
