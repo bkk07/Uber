@@ -1,0 +1,19 @@
+server:
+  port: 8088
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/uber_ratings
+    username: root
+    password: Kiran@210800
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update   # use validate/create/create-drop/update based on your need
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.MySQL8Dialect
+
+  application:
+    name: ratings-service
