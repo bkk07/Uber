@@ -3,83 +3,464 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Razorpay Test Payment</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Razorpay Payment Gateway</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .payment-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+            max-width: 450px;
+            width: 100%;
+            position: relative;
+        }
+
+        .payment-header {
+            background: linear-gradient(135deg, #3399cc, #287aa6);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+        }
+
+        .payment-header::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 15px solid transparent;
+            border-right: 15px solid transparent;
+            border-top: 15px solid #287aa6;
+        }
+
+        .payment-header h2 {
+            font-size: 24px;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .payment-header p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+
+        .payment-body {
+            padding: 40px 30px;
+            text-align: center;
+        }
+
+        .amount-display {
+            font-size: 48px;
+            font-weight: 700;
+            color: #2c3e50;
+            margin: 20px 0;
+            display: block;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.3s ease;
+        }
+
+        .amount-display.loaded {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .ride-info {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 4px solid #3399cc;
+        }
+
+        .ride-info h3 {
+            color: #2c3e50;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+
+        .ride-info p {
+            color: #6c757d;
+            font-size: 14px;
+            margin: 5px 0;
+        }
+
+        .pay-button {
+            background: linear-gradient(135deg, #3399cc, #287aa6);
+            color: white;
+            border: none;
+            padding: 16px 40px;
+            font-size: 18px;
+            font-weight: 600;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(51, 153, 204, 0.4);
+            position: relative;
+            overflow: hidden;
+            min-width: 160px;
+            margin-top: 20px;
+        }
+
+        .pay-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(51, 153, 204, 0.6);
+        }
+
+        .pay-button:active {
+            transform: translateY(0);
+        }
+
+        .pay-button:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .pay-button .spinner {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #ffffff30;
+            border-top: 2px solid #ffffff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+
+        .pay-button.loading .spinner {
+            display: inline-block;
+        }
+
+        .pay-button.loading .button-text {
+            opacity: 0.7;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error-message {
+            background: #fee;
+            color: #c53030;
+            padding: 12px;
+            border-radius: 8px;
+            margin: 20px 0;
+            font-size: 14px;
+            display: none;
+            border-left: 4px solid #c53030;
+        }
+
+        .success-message {
+            background: #f0fff4;
+            color: #22543d;
+            padding: 12px;
+            border-radius: 8px;
+            margin: 20px 0;
+            font-size: 14px;
+            display: none;
+            border-left: 4px solid #22543d;
+        }
+
+        .powered-by {
+            text-align: center;
+            padding: 20px;
+            color: #6c757d;
+            font-size: 12px;
+            background: #f8f9fa;
+        }
+
+        .powered-by img {
+            height: 20px;
+            margin-left: 5px;
+            vertical-align: middle;
+        }
+
+        @media (max-width: 480px) {
+            .payment-container {
+                margin: 10px;
+                border-radius: 15px;
+            }
+
+            .payment-header {
+                padding: 25px 20px;
+            }
+
+            .payment-body {
+                padding: 30px 20px;
+            }
+
+            .amount-display {
+                font-size: 36px;
+            }
+        }
+    </style>
 </head>
 <body>
-<div class="container">
-    <h2>Test Payment</h2>
-    <p>Click the button below to pay <strong>₹10000.00</strong> in Razorpay Test Mode.</p>
-    <button class="pay-btn" id="pay-button">Pay Now</button>
+<div class="payment-container">
+    <div class="payment-header">
+        <h2>Secure Payment</h2>
+        <p>Powered by Razorpay</p>
+    </div>
+
+    <div class="payment-body">
+        <div class="ride-info">
+            <h3>Ride Details</h3>
+            <p><strong>Ride ID:</strong> <span id="ride-id">RIDE100</span></p>
+            <p><strong>Payment for:</strong> Cab Service</p>
+            <p><strong>Status:</strong> Ready to Pay</p>
+        </div>
+
+        <div class="error-message" id="error-message"></div>
+        <div class="success-message" id="success-message"></div>
+
+        <strong id="amount-display" class="amount-display">₹0.00</strong>
+
+        <button id="pay-button" class="pay-button">
+            <span class="spinner"></span>
+            <span class="button-text">Pay Securely</span>
+        </button>
+    </div>
+
+    <div class="powered-by">
+        Secured by SSL encryption
+    </div>
 </div>
 
-<!-- Razorpay Checkout -->
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <script>
-    document.getElementById("pay-button").onclick = function () {
-        // Step 1: Create order from backend
-        fetch("http://localhost:8080/api/payments/create-order?amount=10000&currency=INR", {
-            method: "POST"
-        })
-            .then(response => response.json())
-            .then(order => {
-                // Step 2: Setup Razorpay options
+    class PaymentHandler {
+        constructor() {
+            this.rideId = "RIDE1"; // This could come from URL params or API
+            this.payButton = document.getElementById("pay-button");
+            this.amountDisplay = document.getElementById("amount-display");
+            this.errorMessage = document.getElementById("error-message");
+            this.successMessage = document.getElementById("success-message");
+            this.rideIdDisplay = document.getElementById("ride-id");
+
+            this.init();
+        }
+
+        init() {
+            this.rideIdDisplay.textContent = this.rideId;
+            this.payButton.addEventListener('click', () => this.handlePayment());
+
+            // Get ride ID from URL params if available
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('rideId')) {
+                this.rideId = urlParams.get('rideId');
+                this.rideIdDisplay.textContent = this.rideId;
+            }
+        }
+
+        showError(message) {
+            this.errorMessage.textContent = message;
+            this.errorMessage.style.display = 'block';
+            this.successMessage.style.display = 'none';
+        }
+
+        showSuccess(message) {
+            this.successMessage.textContent = message;
+            this.successMessage.style.display = 'block';
+            this.errorMessage.style.display = 'none';
+        }
+
+        hideMessages() {
+            this.errorMessage.style.display = 'none';
+            this.successMessage.style.display = 'none';
+        }
+
+        setLoading(loading) {
+            if (loading) {
+                this.payButton.classList.add('loading');
+                this.payButton.disabled = true;
+                this.payButton.querySelector('.button-text').textContent = 'Processing...';
+            } else {
+                this.payButton.classList.remove('loading');
+                this.payButton.disabled = false;
+                this.payButton.querySelector('.button-text').textContent = 'Pay Securely';
+            }
+        }
+
+        async handlePayment() {
+            // Prevent multiple clicks
+            if (this.payButton.disabled) {
+                return;
+            }
+
+            this.hideMessages();
+            this.setLoading(true);
+
+            try {
+                console.log("Creating Razorpay order for ride:", this.rideId);
+
+                // Step 1: Create order from backend
+                const orderResponse = await fetch(`http://localhost:8089/api/payments/pay?rideId=${this.rideId}`, {
+                    method: "POST",
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+
+                if (!orderResponse.ok) {
+                    const errorData = await orderResponse.text();
+                    throw new Error(`Failed to create order: ${errorData}`);
+                }
+
+                const order = await orderResponse.json();
+                console.log("Order received from backend:", order);
+
+                // Update amount display
+                const displayAmount = (order.amount / 100).toFixed(2);
+                this.amountDisplay.textContent = `₹${displayAmount}`;
+                this.amountDisplay.classList.add('loaded');
+
+                this.setLoading(false);
+
+                // Step 2: Setup Razorpay checkout options
                 const options = {
-                    key: "rzp_test_RFzM8sxvEqIb5Z", // Replace with your Test Key ID
+                    key: order.key,
                     amount: order.amount,
                     currency: order.currency,
-                    name: "My Test Store",
-                    description: "Test Transaction",
-                    order_id: order.id,
-                    handler: function (response) {
-                        // Step 3: Send payment details to backend for verification
-                        fetch("http://localhost:8080/api/payments/verify", {
-                            method: "POST",
-                            headers: {
-                                "Content-Type": "application/json"
-                            },
-                            body: JSON.stringify({
-                                razorpay_payment_id: response.razorpay_payment_id,
-                                razorpay_order_id: response.razorpay_order_id,
-                                razorpay_signature: response.razorpay_signature
-                            })
-                        })
-                            .then(res => res.json())
-                            .then(data => {
-                                if (data.status === "success") {
-                                    // Redirect only if backend confirms success
-                                    window.location.href = "success.html?payment_id=" + response.razorpay_payment_id;
-                                } else {
-                                    // Redirect to failure page
-                                    window.location.href = "failure.html";
-                                }
-                            })
-                            .catch(err => {
-                                console.error("Verification error:", err);
-                                window.location.href = "failure.html";
-                            });
-                    },
-                    modal: {
-                        ondismiss: function () {
-                            // Redirect to failure if user closes payment popup
-                            window.location.href = "failure.html";
-                        }
-                    },
+                    name: "Your Cab Service",
+                    description: `Payment for Ride ${this.rideId}`,
+                    image: "", // Add your logo URL here
+                    order_id: order.orderId,
+                    handler: (response) => this.handlePaymentSuccess(response),
                     prefill: {
-                        name: "Test User",
-                        email: "test@example.com",
+                        name: "Customer",
+                        email: "customer@example.com",
                         contact: "9876543210"
                     },
                     theme: {
-                        color: "#3399cc"
+                        color: "#3399cc",
+                        backdrop_color: "#00000080"
+                    },
+                    modal: {
+                        ondismiss: () => this.handlePaymentDismiss(),
+                        confirm_close: true,
+                        escape: true,
+                        backdropclose: false
+                    },
+                    retry: {
+                        enabled: true,
+                        max_count: 3
                     }
                 };
-                // Step 4: Open Razorpay popup
+
+                // Step 3: Open Razorpay checkout
                 const rzp = new Razorpay(options);
+
+                rzp.on('payment.failed', (response) => {
+                    this.handlePaymentFailure(response);
+                });
+
                 rzp.open();
-            })
-            .catch(err => console.error("Order creation error:", err));
-    };
+
+            } catch (error) {
+                console.error("Error creating order:", error);
+                this.setLoading(false);
+                this.showError(error.message || "Failed to create payment order. Please try again.");
+            }
+        }
+
+        async handlePaymentSuccess(response) {
+            console.log("Payment completed, verifying...", response);
+
+            // Debug: Log all response properties
+            console.log("Razorpay Response Details:");
+            console.log("Payment ID:", response.razorpay_payment_id);
+            console.log("Order ID:", response.razorpay_order_id);
+            console.log("Signature:", response.razorpay_signature);
+
+            // Validate required fields
+            if (!response.razorpay_payment_id || !response.razorpay_order_id || !response.razorpay_signature) {
+                console.error("Missing required fields in Razorpay response:", response);
+                this.showError("Payment verification failed - missing required data");
+                return;
+            }
+
+            this.setLoading(true);
+
+            try {
+                const verifyResponse = await fetch("http://localhost:8089/api/payments/verify", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Accept": "application/json"
+                    },
+                    body: JSON.stringify({
+                        razorpay_payment_id: response.razorpay_payment_id,
+                        razorpay_order_id: response.razorpay_order_id,
+                        razorpay_signature: response.razorpay_signature
+                    })
+                });
+
+                const data = await verifyResponse.json();
+                console.log("Verify response:", data);
+
+                if (data.status === "success") {
+                    this.showSuccess("Payment successful! Redirecting...");
+                    setTimeout(() => {
+                        window.location.href = `success.html?payment_id=${response.razorpay_payment_id}&ride_id=${this.rideId}`;
+                    }, 2000);
+                } else {
+                    this.showError("Payment verification failed. Please contact support.");
+                    setTimeout(() => {
+                        window.location.href = "failure.html";
+                    }, 3000);
+                }
+            } catch (error) {
+                console.error("Error verifying payment:", error);
+                this.showError("Payment verification failed. Please contact support.");
+                setTimeout(() => {
+                    window.location.href = "failure.html";
+                }, 3000);
+            } finally {
+                this.setLoading(false);
+            }
+        }
+
+        handlePaymentFailure(response) {
+            console.error("Payment failed:", response);
+            this.showError(`Payment failed: ${response.error.description || 'Unknown error'}`);
+
+            // Optionally redirect after showing error
+            setTimeout(() => {
+                window.location.href = "failure.html";
+            }, 3000);
+        }
+
+        handlePaymentDismiss() {
+            console.warn("User closed the Razorpay popup");
+            this.showError("Payment cancelled by user.");
+        }
+    }
+
+    // Initialize payment handler when page loads
+    document.addEventListener('DOMContentLoaded', () => {
+        new PaymentHandler();
+    });
 </script>
 </body>
 </html>

@@ -15,8 +15,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RequestBody;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -72,39 +74,53 @@ public class PaymentService {
      // Links the Razorpay order ID to the existing PENDING payment.
      // @param rideId The ride ID associated with the payment.
      // @return PaymentOrderResponse containing Razorpay order details.
-    @Transactional
-    public PaymentOrderResponse createPaymentOrder(String rideId) {
-        log.info("Creating payment order for rideId: {}", rideId);
-        Payment payment = paymentRepository.findByRideId(rideId)
-                .orElseThrow(() -> new PaymentNotFoundException("rideId: " + rideId));
+     @Transactional
+     public PaymentOrderResponse createPaymentOrder(String rideId) {
+         log.info("Creating payment order for rideId: {}", rideId);
+         Payment payment = paymentRepository.findByRideId(rideId)
+                 .orElseThrow(() -> new PaymentNotFoundException("rideId: " + rideId));
 
-        if (payment.getPaymentStatus() != PaymentStatus.PENDING) {
-            throw new InvalidPaymentStateException(
-                    payment.getId(), payment.getPaymentStatus().name(), PaymentStatus.PENDING.name());
-        }
+         if (payment.getPaymentStatus() != PaymentStatus.PENDING) {
+             throw new InvalidPaymentStateException(
+                     payment.getId(), payment.getPaymentStatus().name(), PaymentStatus.PENDING.name());
+         }
 
-        // Razorpay expects amount in the smallest currency unit (e.g., paise for INR)
+         // **CRITICAL FIX**: Check if order already exists to prevent duplicate order creation
+         if (payment.getOrderId() != null && !payment.getOrderId().trim().isEmpty()) {
+             log.info("Razorpay order already exists: {} for payment ID: {}, returning existing order",
+                     payment.getOrderId(), payment.getId());
 
-        long amountInPaise = (long) (payment.getAmount() * 100);
-        String razorpayOrderId;
-        try {
-            razorpayOrderId = razorpayClientWrapper.createOrder(amountInPaise, payment.getCurrency());
-        } catch (RazorpayException e) {
-            log.error("Failed to create Razorpay order for rideId {}: {}", rideId, e.getMessage());
-            throw new BusinessLogicException("Failed to create payment order with Razorpay.", e);
-        }
-        payment.setOrderId(razorpayOrderId);
-        payment.setUpdatedAt(LocalDateTime.now());
-        paymentRepository.save(payment);
-        log.info("Razorpay order created: {} for payment ID: {}", razorpayOrderId, payment.getId());
-        return new PaymentOrderResponse(
-                razorpayOrderId,
-                (double) amountInPaise, // Return in paise, frontend will handle
-                payment.getCurrency(),
-                razorpayClientWrapper.getRazorpayKeyId()
-        );
-    }
+             long amountInPaise = (long) (payment.getAmount() * 100);
+             return new PaymentOrderResponse(
+                     payment.getOrderId(),
+                     (double) amountInPaise,
+                     payment.getCurrency(),
+                     razorpayClientWrapper.getRazorpayKeyId()
+             );
+         }
 
+         // Create new order only if one doesn't exist
+         long amountInPaise = (long) (payment.getAmount() * 100);
+         String razorpayOrderId;
+         try {
+             razorpayOrderId = razorpayClientWrapper.createOrder(amountInPaise, payment.getCurrency());
+         } catch (RazorpayException e) {
+             log.error("Failed to create Razorpay order for rideId {}: {}", rideId, e.getMessage());
+             throw new BusinessLogicException("Failed to create payment order with Razorpay.", e);
+         }
+
+         payment.setOrderId(razorpayOrderId);
+         payment.setUpdatedAt(LocalDateTime.now());
+         paymentRepository.save(payment);
+         log.info("Razorpay order created: {} for payment ID: {}", razorpayOrderId, payment.getId());
+
+         return new PaymentOrderResponse(
+                 razorpayOrderId,
+                 (double) amountInPaise,
+                 payment.getCurrency(),
+                 razorpayClientWrapper.getRazorpayKeyId()
+         );
+     }
 
 
     /**
@@ -114,10 +130,22 @@ public class PaymentService {
      * @return Status of the verification (success/failed).
      */
     @Transactional
-    public String verifyPayment(VerifyPaymentRequest request) {
-        log.info("Verifying payment for Razorpay order ID: {}", request.getRazorpay_order_id());
-        Payment payment = paymentRepository.findByOrderId(request.getRazorpay_order_id())
-                .orElseThrow(() -> new PaymentNotFoundException("orderId: " + request.getRazorpay_order_id()));
+    public String verifyPayment(Map<String, String> payload) {
+        String razorpayOrderId = payload.get("razorpay_order_id");
+        String razorpayPaymentId = payload.get("razorpay_payment_id");
+        String razorpaySignature = payload.get("razorpay_signature");
+        System.out.println("RazorOrderId :" +razorpayOrderId+" RazorPaymentId "+razorpayPaymentId +" RazorPaySignature "+razorpaySignature);
+        if (razorpayOrderId == null || razorpayOrderId.trim().isEmpty()) {
+            throw new PaymentVerificationException("Missing or empty razorpay_order_id");
+        }
+        if (razorpayPaymentId == null || razorpayPaymentId.trim().isEmpty()) {
+            throw new PaymentVerificationException("Missing or empty razorpay_payment_id");
+        }
+        if (razorpaySignature == null || razorpaySignature.trim().isEmpty()) {
+            throw new PaymentVerificationException("Missing or empty razorpay_signature");
+        }
+        Payment payment = paymentRepository.findByOrderId(razorpayOrderId)
+                .orElseThrow(() -> new PaymentNotFoundException("orderId: " + razorpayOrderId));
 
         if (payment.getPaymentStatus() != PaymentStatus.PENDING) {
             log.warn("Payment {} already processed with status: {}", payment.getId(), payment.getPaymentStatus());
@@ -130,14 +158,14 @@ public class PaymentService {
 
         try {
             boolean isVerified = razorpayClientWrapper.verifyPayment(
-                    request.getRazorpay_order_id(),
-                    request.getRazorpay_payment_id(),
-                    request.getRazorpay_signature()
+                    razorpayOrderId,
+                    razorpayPaymentId,
+                    razorpaySignature
             );
 
             if (isVerified) {
                 payment.setPaymentStatus(PaymentStatus.SUCCESS);
-                payment.setTransactionId(request.getRazorpay_payment_id());
+                payment.setTransactionId(razorpayPaymentId);
                 log.info("Payment {} successfully verified.", payment.getId());
                 return "success";
             } else {
@@ -151,6 +179,7 @@ public class PaymentService {
             throw e; // Re-throw the custom exception
         } finally {
             payment.setUpdatedAt(LocalDateTime.now());
+            System.out.println(payment.toString());
             paymentRepository.save(payment);
         }
     }

@@ -13,7 +13,6 @@ import org.springframework.stereotype.Component;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
-import java.util.Base64;
 
 @Component
 @Slf4j
@@ -55,31 +54,53 @@ public class RazorpayClientWrapper {
      * @return true if verification successful
      * @throws PaymentVerificationException if signature mismatch
      */
-    public boolean verifyPayment(String razorpayOrderId, String razorpayPaymentId, String razorpaySignature)
-            throws PaymentVerificationException {
-        try {
-            String payload = razorpayOrderId + "|" + razorpayPaymentId;
-
-            Mac mac = Mac.getInstance("HmacSHA256");
-            SecretKeySpec secretKeySpec = new SecretKeySpec(secretKey.getBytes(), "HmacSHA256");
-            mac.init(secretKeySpec);
-
-            byte[] actualHash = mac.doFinal(payload.getBytes());
-            String generatedSignature = Base64.getEncoder().encodeToString(actualHash);
-
-            if (!generatedSignature.equals(razorpaySignature)) {
-                log.error("Payment signature mismatch. Expected: {}, Actual: {}", generatedSignature, razorpaySignature);
-                throw new PaymentVerificationException("Invalid Razorpay signature");
-            }
-            log.info("Payment verified successfully for paymentId: {}", razorpayPaymentId);
-            return true;
-        } catch (Exception e) {
-            log.error("Error verifying Razorpay signature", e);
-            return false;
+//    public boolean verifyPayment(String razorpayOrderId, String razorpayPaymentId, String razorpaySignature)
+//            throws PaymentVerificationException {
+//        try {
+//            String payload = razorpayOrderId + "|" + razorpayPaymentId;
+//
+//            Mac mac = Mac.getInstance("HmacSHA256");
+//            SecretKeySpec secretKeySpec = new SecretKeySpec(secretKey.getBytes(), "HmacSHA256");
+//            mac.init(secretKeySpec);
+//
+//            byte[] actualHash = mac.doFinal(payload.getBytes());
+//            String generatedSignature = Base64.getEncoder().encodeToString(actualHash);
+//
+//            if (!generatedSignature.equals(razorpaySignature)) {
+//                log.error("Payment signature mismatch. Expected: {}, Actual: {}", generatedSignature, razorpaySignature);
+//                throw new PaymentVerificationException("Invalid Razorpay signature");
+//            }
+//            log.info("Payment verified successfully for paymentId: {}", razorpayPaymentId);
+//            return true;
+//        } catch (Exception e) {
+//            log.error("Error verifying Razorpay signature", e);
 //            throw new PaymentVerificationException("Failed to verify Razorpay payment", e);
+//        }
+//    }
+    public boolean verifyPayment(String razorpayOrderId, String razorpayPaymentId, String razorpaySignature)
+            {
+        try {
+            String data = razorpayOrderId + "|" + razorpayPaymentId;
+            System.out.println(data);
+            Mac sha256_HMAC = Mac.getInstance("HmacSHA256");
+            SecretKeySpec secret_key = new SecretKeySpec(secretKey.getBytes(), "HmacSHA256");
+            sha256_HMAC.init(secret_key);
+            byte[] hash = sha256_HMAC.doFinal(data.getBytes());
+            // Convert byte[] to hex string
+            StringBuilder hexString = new StringBuilder();
+            for (byte b : hash) {
+                String hex = Integer.toHexString(0xff & b);
+                if (hex.length() == 1) hexString.append('0');
+                hexString.append(hex);
+            }
+            String generatedSignature = hexString.toString();
+
+            return generatedSignature.equals(razorpaySignature);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
         }
     }
-
     /**
      * Initiates a refund using Razorpay API.
      * @param paymentId Razorpay payment_id for which refund is to be initiated.
