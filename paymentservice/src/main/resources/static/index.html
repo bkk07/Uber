@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Razorpay Test Payment</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="container">
+    <h2>Test Payment</h2>
+    <p>Click the button below to pay <strong>₹10000.00</strong> in Razorpay Test Mode.</p>
+    <button class="pay-btn" id="pay-button">Pay Now</button>
+</div>
+
+<!-- Razorpay Checkout -->
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+    document.getElementById("pay-button").onclick = function () {
+        // Step 1: Create order from backend
+        fetch("http://localhost:8080/api/payments/create-order?amount=10000&currency=INR", {
+            method: "POST"
+        })
+            .then(response => response.json())
+            .then(order => {
+                // Step 2: Setup Razorpay options
+                const options = {
+                    key: "rzp_test_RFzM8sxvEqIb5Z", // Replace with your Test Key ID
+                    amount: order.amount,
+                    currency: order.currency,
+                    name: "My Test Store",
+                    description: "Test Transaction",
+                    order_id: order.id,
+                    handler: function (response) {
+                        // Step 3: Send payment details to backend for verification
+                        fetch("http://localhost:8080/api/payments/verify", {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json"
+                            },
+                            body: JSON.stringify({
+                                razorpay_payment_id: response.razorpay_payment_id,
+                                razorpay_order_id: response.razorpay_order_id,
+                                razorpay_signature: response.razorpay_signature
+                            })
+                        })
+                            .then(res => res.json())
+                            .then(data => {
+                                if (data.status === "success") {
+                                    // Redirect only if backend confirms success
+                                    window.location.href = "success.html?payment_id=" + response.razorpay_payment_id;
+                                } else {
+                                    // Redirect to failure page
+                                    window.location.href = "failure.html";
+                                }
+                            })
+                            .catch(err => {
+                                console.error("Verification error:", err);
+                                window.location.href = "failure.html";
+                            });
+                    },
+                    modal: {
+                        ondismiss: function () {
+                            // Redirect to failure if user closes payment popup
+                            window.location.href = "failure.html";
+                        }
+                    },
+                    prefill: {
+                        name: "Test User",
+                        email: "test@example.com",
+                        contact: "9876543210"
+                    },
+                    theme: {
+                        color: "#3399cc"
+                    }
+                };
+                // Step 4: Open Razorpay popup
+                const rzp = new Razorpay(options);
+                rzp.open();
+            })
+            .catch(err => console.error("Order creation error:", err));
+    };
+</script>
+</body>
+</html>

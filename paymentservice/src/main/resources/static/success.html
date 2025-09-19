@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Payment Success</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container success">
+    <h2>🎉 Payment Successful!</h2>
+    <p>Thank you for your payment.</p>
+    <p id="payment-id"></p>
+    <a href="index.html" class="btn">Go Back</a>
+  </div>
+
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const paymentId = urlParams.get("payment_id");
+    if (paymentId) {
+      document.getElementById("payment-id").innerText = "Payment ID: " + paymentId;
+    }
+  </script>
+</body>
+</html>
