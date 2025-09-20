@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -233,7 +234,6 @@ public class PaymentService {
 
         String externalRefundId;
         try {
-            // Razorpay expects amount in the smallest currency unit (e.g., paise for INR)
             long amountInPaise = (long) (request.getAmount() * 100);
             externalRefundId = razorpayClientWrapper.initiateRefund(payment.getTransactionId(), amountInPaise);
             refund.setRefundStatus(RefundStatus.SUCCESS);
@@ -264,5 +264,13 @@ public class PaymentService {
                 refund.getRefundExternalId() != null ? refund.getRefundExternalId() : "N/A",
                 refund.getRefundStatus().name()
         );
+    }
+
+    public List<Payment> getPaymentsByUserId(Long userId) {
+        return paymentRepository.findByUserId(userId);
+    }
+
+    public List<Payment> getPaymentsByDriverId(Long driverId) {
+        return paymentRepository.findByDriverId(driverId);
     }
 }

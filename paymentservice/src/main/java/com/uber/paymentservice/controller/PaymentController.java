@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -125,14 +126,11 @@ public class PaymentController {
     public ResponseEntity<Payment> getPaymentStatus(@PathVariable String rideId) {
         try {
             log.info("Received get payment status request for rideId: {}", rideId);
-
             if (rideId == null || rideId.trim().isEmpty()) {
                 throw new BusinessLogicException("RideId cannot be null or empty");
             }
-
             Payment payment = paymentService.getPaymentStatus(rideId);
             return ResponseEntity.ok(payment);
-
         } catch (PaymentNotFoundException e) {
             log.error("Payment not found for rideId {}: {}", rideId, e.getMessage());
             throw e;
@@ -175,4 +173,16 @@ public class PaymentController {
         response.put("service", "payment-service");
         return ResponseEntity.ok(response);
     }
+
+    @GetMapping("/userId/{userId}")
+    public ResponseEntity<List<Payment>> getPaymentsByUserId(@PathVariable Long userId) {
+        List<Payment> payments = paymentService.getPaymentsByUserId(userId);
+        return ResponseEntity.ok(payments);
+    }
+    @GetMapping("/driverId/{driverId}")
+    public ResponseEntity<List<Payment>> getPaymentsByDriverId(@PathVariable Long driverId) {
+        List<Payment> payments = paymentService.getPaymentsByDriverId(driverId);
+        return ResponseEntity.ok(payments);
+    }
+
 }
