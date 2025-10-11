@@ -138,7 +138,7 @@ public class DriverServiceImpl implements DriverService {
                 .sorted(Comparator.comparingDouble(
                         d -> calculateDistance(pickupLat, pickupLon, d.getLatitude(), d.getLongitude())
                 ))
-                .limit(limit) // pick only top `limit` drivers
+                .limit(limit)
                 .map(driver -> DriverDto.builder()
                         .id(driver.getId())
                         .username(driver.getUsername())

@@ -97,7 +97,7 @@ public class DriverController {
         return new ResponseEntity<>(updatedDriver, HttpStatus.OK);
     }
 
-    @GetMapping("/api/drivers/nearby")
+    @GetMapping("/nearby")
     List<DriverDto> getNearbyDrivers(
             @RequestParam("latitude") Double latitude,
             @RequestParam("longitude") Double longitude,

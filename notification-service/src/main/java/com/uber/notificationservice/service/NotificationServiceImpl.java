@@ -47,6 +47,7 @@ public class NotificationServiceImpl implements NotificationService {
         notification.setCreatedAt(LocalDateTime.now());
         notification.setStatus(NotificationStatus.UNREAD);
         Notification savedNotification = notificationRepository.save(notification);
+        System.out.println(savedNotification.toString());
         return ;
     }
     @Override

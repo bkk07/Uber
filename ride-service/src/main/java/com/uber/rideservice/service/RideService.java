@@ -40,17 +40,20 @@ public class RideService {
         ride.setStatus(RideStatus.REQUESTED);
         ride.setCreatedAt(LocalDateTime.now());
         ride.setUpdatedAt(LocalDateTime.now());
+        ride.setPickupLocationLat(request.getPickupLocationLat());
+        ride.setDropLocationLat(request.getDropLocationLat());
+        ride.setDropLocationLon(request.getDropLocationLon());
+        ride.setPickupLocationLon(request.getPickupLocationLon());
         // Fare estimation logic would go here
         ride.setFareEstimate(15.00); // Placeholder
         ride = rideRepository.save(ride);
-
         // 2. Call Driver-Service to fetch top 5 nearby drivers (using pickup location for now)
         // In a real scenario, you'd get user's current location, not just pickup.
         // For simplicity, let's assume `DriverServiceFeignClient` can determine nearby based on pickupLocation string,
         // or we need actual lat/long for pickup. For now, using dummy coordinates.
         List<DriverDto> nearbyDrivers = driverServiceFeignClient.getNearbyDrivers(
-                getLatitudeFromLocation(request.getPickupLocation()),
-                getLongitudeFromLocation(request.getPickupLocation()),
+                request.getPickupLocationLat(),
+                request.getPickupLocationLon(),
                 5
         );
 
@@ -74,7 +77,7 @@ public class RideService {
                 // If a driver was already reserved and is awaiting response, cancel that reservation first
                 log.warn("Ride {} already has a driver {} reserved. Cancelling previous reservation.", rideId, ride.getDriverId());
                 // In a real system, you might notify the previously reserved driver of cancellation.
-                redisTemplate.delete(DRIVER_RESERVATION_KEY_PREFIX + rideId + ":" + ride.getDriverId());
+//                redisTemplate.delete(DRIVER_RESERVATION_KEY_PREFIX + rideId + ":" + ride.getDriverId());
             }
         }
 
@@ -100,18 +103,10 @@ public class RideService {
             log.error("Failed to send notification to driver {}: {}", request.getDriverId(), e.getMessage());
             // Depending on system design, this might trigger a retry or mark notification as failed.
         }
-
-        // 3. Start 30s timer (using Redis TTL)
-        String reservationKey = DRIVER_RESERVATION_KEY_PREFIX + rideId + ":" + request.getDriverId();
-        redisTemplate.opsForValue().set(reservationKey, "pending", DRIVER_ACCEPTANCE_TIMEOUT_SECONDS, TimeUnit.SECONDS);
-        log.info("Started 30s timer for driver {} to accept ride {}", request.getDriverId(), rideId);
-
-
         RideResponse response = mapRideToRideResponse(ride);
         response.setMessage("Driver " + request.getDriverId() + " has been notified and has " + DRIVER_ACCEPTANCE_TIMEOUT_SECONDS + " seconds to respond.");
         return response;
     }
-
     @Transactional
     public RideResponse handleDriverResponse(Long rideId, DriverResponseRequest request) {
         Ride ride = rideRepository.findById(rideId)
@@ -124,25 +119,6 @@ public class RideService {
             // Could return an error or simply ignore
             return mapRideToRideResponse(ride, "Response ignored: Not the assigned driver.");
         }
-
-        // Check if the reservation timed out or was already processed
-        String reservationKey = DRIVER_RESERVATION_KEY_PREFIX + rideId + ":" + request.getDriverId();
-        if (!redisTemplate.hasKey(reservationKey)) {
-            log.warn("Driver {} responded for ride {} but reservation key {} not found (timed out or already processed).",
-                    request.getDriverId(), rideId, reservationKey);
-            // This means the 30s timer expired or the ride moved to another state
-            if (ride.getStatus() == RideStatus.DRIVER_RESERVED) {
-                // If the ride is still DRIVER_RESERVED, but Redis key is gone, it timed out.
-                // This situation implies a race condition or a delayed response after timeout
-                // For simplicity, we will treat it as a rejection if current status is DRIVER_RESERVED.
-                return handleDriverTimeout(rideId);
-            }
-            return mapRideToRideResponse(ride, "Driver response ignored as reservation expired or ride status changed.");
-        }
-
-        // Clear the Redis timer as driver has responded
-        redisTemplate.delete(reservationKey);
-
         if (request.getAccepted()) {
             // 1. If accepted within 30s → status = CONFIRMED
             ride.setStatus(RideStatus.CONFIRMED);
@@ -150,15 +126,21 @@ public class RideService {
             // Optionally update driver status in Driver-Service (e.g., to "unavailable" or "en route")
             driverServiceFeignClient.updateDriverStatus(request.getDriverId(), "BUSY");
             log.info("Driver {} accepted ride {}", request.getDriverId(), rideId);
-            notificationServiceFeignClient.createNotification(
-                    NotificationRequest
-                            .builder()
-                            .recipientId(String.valueOf(ride.getUserId()))
-                            .recipientType("USER")
-                            .notificationType("RIDE_ACCEPTED")
-                            .messageContent("Your ride with driver " + request.getDriverId() + " has been confirmed!")
-                            .build()
-            );
+            try{
+                notificationServiceFeignClient.createNotification(
+                        NotificationRequest
+                                .builder()
+                                .recipientId(String.valueOf(ride.getUserId()))
+                                .recipientType("USER")
+                                .notificationType("RIDE_ACCEPTED")
+                                .messageContent("Your ride with driver " + request.getDriverId() + " has been confirmed!")
+                                .build()
+                );
+            }catch(Exception e){
+                log.error("Failed to send notification the to driver {}: {}", request.getDriverId(), e.getMessage());
+                System.out.println(e.getMessage());
+            }
+
             return mapRideToRideResponse(ride, "Ride confirmed by driver.");
         } else {
             // 2. If rejected → unassign driver, return next driver option to user.
@@ -180,16 +162,21 @@ public class RideService {
         // Update driver status in Driver-Service (e.g., to "in_ride")
         driverServiceFeignClient.updateDriverStatus(ride.getDriverId(), "BUSY");
         log.info("Ride {} started with driver {}", rideId, ride.getDriverId());
-        notificationServiceFeignClient.createNotification(
-                NotificationRequest
-                        .builder()
-                        .recipientId(String.valueOf(ride.getUserId()))
-                        .recipientType("USER")
-                        .notificationType("RIDE_STARTED")
-                        .messageContent("\"RIDE_STARTED\",\n" +
-                                "                        \"Your ride is now in progress!\"")
-                        .build()
-        );
+        try{
+            notificationServiceFeignClient.createNotification(
+                    NotificationRequest
+                            .builder()
+                            .recipientId(String.valueOf(ride.getUserId()))
+                            .recipientType("USER")
+                            .notificationType("RIDE_STARTED")
+                            .messageContent("\"RIDE_STARTED\",\n" +
+                                    "                        \"Your ride is now in progress!\"")
+                            .build()
+            );
+        }catch(Exception e){
+            System.out.println(e.getMessage());
+        }
+
         return mapRideToRideResponse(ride, "Ride started successfully.");
     }
 
@@ -212,26 +199,36 @@ public class RideService {
 
         // Trigger Rating-Service request (e.g., via Kafka event or another Feign client)
         // For now, just a notification.
-        notificationServiceFeignClient.createNotification(
-                NotificationRequest
-                        .builder()
-                        .recipientId(String.valueOf(ride.getUserId()))
-                        .recipientType("USER")
-                        .notificationType("RIDE_COMPLETED")
-                        .messageContent("Your ride is complete! Please rate your driver.")
-                        .build()
-        );
-        // Also notify the driver to rate the user
-        if (ride.getDriverId() != null) {
+        try{
             notificationServiceFeignClient.createNotification(
                     NotificationRequest
                             .builder()
-                            .recipientId(String.valueOf(ride.getDriverId()))
-                            .recipientType("DRIVER")
+                            .recipientId(String.valueOf(ride.getUserId()))
+                            .recipientType("USER")
                             .notificationType("RIDE_COMPLETED")
-                            .messageContent("Your ride is complete! Please rate your user.")
+                            .messageContent("Your ride is complete! Please rate your driver.")
                             .build()
             );
+        }catch(Exception e){
+            System.out.println(e.getMessage());
+        }
+
+        // Also notify the driver to rate the user
+        if (ride.getDriverId() != null) {
+            try{
+                notificationServiceFeignClient.createNotification(
+                        NotificationRequest
+                                .builder()
+                                .recipientId(String.valueOf(ride.getDriverId()))
+                                .recipientType("DRIVER")
+                                .notificationType("RIDE_COMPLETED")
+                                .messageContent("Your ride is complete! Please rate your user.")
+                                .build()
+                );
+            }catch(Exception e){
+                System.out.println(e.getMessage());
+            }
+
         }
         return mapRideToRideResponse(ride, "Ride completed successfully. Please provide your rating.");
     }

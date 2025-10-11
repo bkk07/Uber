@@ -1,6 +1,7 @@
 package com.uber.rideservice.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
@@ -18,14 +19,22 @@ public class Ride {
 
     @Column(nullable = false)
     private Long userId;
-
-    private Long driverId; // nullable until driver is selected
-
+    private Long driverId;
     @Column(nullable = false)
     private String pickupLocation;
-
     @Column(nullable = false)
     private String dropLocation;
+
+    // Latitude and longitude for the pickup location
+    private Double pickupLocationLat;
+
+    private Double pickupLocationLon;
+
+    // Latitude and longitude for the drop location
+    private Double dropLocationLat;
+
+    private Double dropLocationLon;
+
 
     private Double fareEstimate;
 

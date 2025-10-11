@@ -105,6 +105,7 @@ public class UserServiceImpl implements UserService {
             throw new BadCredentialsException("Invalid password");
         }
         // Return Auth response
+        System.out.println(credential);
         UserAuthResponse userAuthResponse = new UserAuthResponse();
         userAuthResponse.setUserId(credential.getId());
         userAuthResponse.setRole(String.valueOf(credential.getUserRole()));
