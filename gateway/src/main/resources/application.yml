@@ -54,3 +54,4 @@ spring:
           filters:
             - StripPrefix=0
             - AuthFilter
+

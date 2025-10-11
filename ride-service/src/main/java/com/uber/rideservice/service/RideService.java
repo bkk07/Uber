@@ -242,17 +242,21 @@ public class RideService {
         }
         // If a driver was reserved, clear the reservation and update driver status
         if (ride.getDriverId() != null && ride.getStatus() == RideStatus.DRIVER_RESERVED) {
-            redisTemplate.delete(DRIVER_RESERVATION_KEY_PREFIX + rideId + ":" + ride.getDriverId());
             driverServiceFeignClient.updateDriverStatus(ride.getDriverId(), "ONLINE");
-            notificationServiceFeignClient.createNotification(
-                    NotificationRequest
-                            .builder()
-                            .recipientId(String.valueOf(ride.getDriverId()))
-                            .recipientType("DRIVER")
-                            .notificationType("RIDE_CANCELLED")
-                            .messageContent("Your ride request "+rideId+" was cancelled.")
-                            .build()
-            );
+            try{
+                notificationServiceFeignClient.createNotification(
+                        NotificationRequest
+                                .builder()
+                                .recipientId(String.valueOf(ride.getDriverId()))
+                                .recipientType("DRIVER")
+                                .notificationType("RIDE_CANCELLED")
+                                .messageContent("Your ride request "+rideId+" was cancelled.")
+                                .build()
+                );
+            }catch(Exception e){
+                System.out.println(e.getMessage());
+            }
+
         } else if (ride.getDriverId() != null && ride.getStatus() == RideStatus.CONFIRMED || ride.getStatus() == RideStatus.IN_PROGRESS) {
             // If ride was confirmed or in progress, driver needs to be notified and status updated
             driverServiceFeignClient.updateDriverStatus(ride.getDriverId(), "ONLINE");

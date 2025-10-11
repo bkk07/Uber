@@ -45,7 +45,6 @@ public class WalletController {
         WalletResponseDTO updatedWallet = walletService.applyPromo(request);
         return new ResponseEntity<>(updatedWallet, HttpStatus.OK);
     }
-
     // This endpoint could be called by a User Management Service upon new user registration
     @PostMapping("/initialize/{userId}")
     public ResponseEntity<WalletResponseDTO> initializeUserWallet(@PathVariable Long userId) {

@@ -19,7 +19,7 @@
         </processorPath>
         <module name="wallet-service" />
       </profile>
-      <profile name="Annotation profile for ride-service" enabled="true">
+      <profile name="Annotation profile for ratings" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
