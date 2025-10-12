@@ -32,7 +32,7 @@ public class DriverRequest {
     private DriverStatus status; // Using Boolean wrapper for @NotNull
     // For initial creation or full update, location can be provided
     private Double latitude;
-    private Double longitude;
+    private Double longitude;   
     @NotBlank(message = "Password cannot be empty")
     @Column(nullable = false)
     private String password;
