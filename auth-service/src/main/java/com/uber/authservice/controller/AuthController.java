@@ -6,26 +6,31 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/auth")
 public class AuthController {
     private final AuthService authService;
     private final JwtUtil jwtUtil;
+    // Auth Service Controller
     @PostMapping("/users/login")
     public ResponseEntity<?> loginUser(@RequestBody AuthRequest authRequest) {
         try {
             UserAuthResponse response = authService.authenticateUser(authRequest.getLoginId(), authRequest.getPassword());
+            System.out.println("User Auth Response :"+response.toString());
             String token = jwtUtil.generateToken(response.getUserId(), response.getRole());
             return ResponseEntity.ok(new AuthResponse(token, response.getUserId(), response.getRole()));
-        } catch (BadCredentialsException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
+        } catch (UsernameNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Username or Email not Found.."));
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred during authentication.");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message","Invalid Password.."));
         }
     }
-
     @GetMapping("/test-token")
     public ResponseEntity<String> testTokenGeneration(@RequestParam Long userId, @RequestParam String role) {
         String token = jwtUtil.generateToken(userId, role);

@@ -1,4 +1,5 @@
 package com.uber.authservice.config;
+import feign.codec.ErrorDecoder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -28,5 +29,9 @@ public class SecurityConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS) // Use stateless sessions
                 );
         return http.build();
+    }
+    @Bean
+    public ErrorDecoder errorDecoder() {
+        return new UserServiceErrorDecoder();
     }
 }
