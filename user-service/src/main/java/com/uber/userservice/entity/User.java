@@ -34,9 +34,6 @@ public class User {
     @Column(nullable = false)
     private String phone;
 
-    @Column(nullable = false)
-    private Long addressId; // Refers to AddressService
-
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;

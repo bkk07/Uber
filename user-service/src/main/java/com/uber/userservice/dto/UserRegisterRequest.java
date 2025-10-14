@@ -24,7 +24,6 @@ public class UserRegisterRequest {
     @Pattern(regexp = "^\\+?[0-9. ()-]{7,25}$", message = "Invalid phone number format")
     private String phone;
 
-    @NotNull(message = "Address ID cannot be null")
     private Long addressId; // Initial address ID for a new user
 
     @NotBlank(message = "Password cannot be empty")

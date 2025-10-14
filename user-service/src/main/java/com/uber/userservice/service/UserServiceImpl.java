@@ -31,7 +31,6 @@ public class UserServiceImpl implements UserService {
                 .username(request.getUsername())
                 .email(request.getEmail())
                 .phone(request.getPhone())
-                .addressId(request.getAddressId())
                 .userRole(UserRole.USER) // Default role for new registrations
                  .password(passwordEncoder.encode(request.getPassword()))
                 .build();
@@ -69,9 +68,6 @@ public class UserServiceImpl implements UserService {
             existingUser.setPhone(request.getPhone());
         }
 
-        if (request.getAddressId() != null) {
-            existingUser.setAddressId(request.getAddressId());
-        }
 
         if (request.getUserRole() != null) {
             existingUser.setUserRole(request.getUserRole());
@@ -133,7 +129,6 @@ public class UserServiceImpl implements UserService {
                 .username(user.getUsername())
                 .email(user.getEmail())
                 .phone(user.getPhone())
-                .addressId(user.getAddressId())
                 .createdAt(user.getCreatedAt())
                 .userRole(user.getUserRole())
                 .build();

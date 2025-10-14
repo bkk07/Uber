@@ -18,6 +18,5 @@ public class UserUpdateRequest {
     @Pattern(regexp = "^\\+?[0-9. ()-]{7,25}$", message = "Invalid phone number format")
     private String phone;
 
-    private Long addressId;
     private UserRole userRole; // Optional: for admin to update user role
 }
