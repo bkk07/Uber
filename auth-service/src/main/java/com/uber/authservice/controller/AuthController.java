@@ -16,18 +16,16 @@ public class AuthController {
     @PostMapping("/users/login")
     public ResponseEntity<?> loginUser(@RequestBody AuthRequest authRequest) {
         try {
-            UserAuthResponse response = authService.authenticateUser(authRequest.getLoginId(),authRequest.getPassword());
-            System.out.println(response.toString());
-            System.out.println("This is the userResponse that we got ");
+            UserAuthResponse response = authService.authenticateUser(authRequest.getLoginId(), authRequest.getPassword());
             String token = jwtUtil.generateToken(response.getUserId(), response.getRole());
             return ResponseEntity.ok(new AuthResponse(token, response.getUserId(), response.getRole()));
         } catch (BadCredentialsException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
         } catch (Exception e) {
-            System.out.println(e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred during authentication.");
         }
     }
+
     @GetMapping("/test-token")
     public ResponseEntity<String> testTokenGeneration(@RequestParam Long userId, @RequestParam String role) {
         String token = jwtUtil.generateToken(userId, role);
@@ -64,6 +62,7 @@ public class AuthController {
                     .body("Error: " + e.getMessage());
 //            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred during authentication.");
         }
+
     }
 
 }
