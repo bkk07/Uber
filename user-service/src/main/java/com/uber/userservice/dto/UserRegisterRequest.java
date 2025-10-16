@@ -23,9 +23,6 @@ public class UserRegisterRequest {
     @NotBlank(message = "Phone number cannot be empty")
     @Pattern(regexp = "^\\+?[0-9. ()-]{7,25}$", message = "Invalid phone number format")
     private String phone;
-
-    private Long addressId; // Initial address ID for a new user
-
     @NotBlank(message = "Password cannot be empty")
     private String password;
 }
