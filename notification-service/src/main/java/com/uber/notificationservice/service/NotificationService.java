@@ -9,4 +9,6 @@ public interface NotificationService {
     void createNotification(NotificationRequest request);
     List<NotificationResponse> getNotificationsForRecipient(String recipientId, String recipientType);
     NotificationResponse markNotificationAsRead(UUID notificationId);
+
+    Long getUnreadNotificationCount(String recipientId, String recipientType);
 }

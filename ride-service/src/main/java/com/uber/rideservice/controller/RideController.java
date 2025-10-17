@@ -9,6 +9,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/rides")
 public class RideController {
@@ -58,5 +60,15 @@ public class RideController {
         } else {
             return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
         }
+    }
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<List<RideResponse>> getRideByUserId(@PathVariable Long userId) {
+        List<RideResponse> response = rideService.getRideByUserId(userId);
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+    @GetMapping("/driver/{driverId}")
+    public ResponseEntity<List<RideResponse>> getRideByDriverId(@PathVariable Long driverId) {
+        List<RideResponse> response = rideService.getRideByDriverId(driverId);
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 }

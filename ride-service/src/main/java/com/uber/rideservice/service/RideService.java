@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 @Service
 @Slf4j
@@ -384,6 +385,47 @@ public class RideService {
         return mapRideToRideResponse(ride, null);
     }
 
+    // Dummy method for deriving coordinates from a location string
+    // In a real application, you'd integrate with a Geo-coding service.
+    private Double getLatitudeFromLocation(String location) {
+        // Simple hash-based dummy for demonstration
+        return (double) location.hashCode() % 90;
+    }
+    private Double getLongitudeFromLocation(String location) {
+        // Simple hash-based dummy for demonstration
+        return (double) location.hashCode() % 180;
+    }
+
+    public List<RideResponse> getRideByUserId(Long userId) {
+        List<Ride> rides = rideRepository.findByUserIdAndRideStatusIn(
+                userId,
+                List.of(RideStatus.COMPLETED, RideStatus.CANCELLED)
+        );
+
+        if (rides.isEmpty()) {
+            return List.of(); // no rides found
+        }
+        // Map each ride to RideResponse using your helper method
+
+        return rides.stream()
+                .map(ride -> mapRideToRideResponse(ride, "Ride fetched successfully"))
+                .toList();
+    }
+
+    public List<RideResponse> getRideByDriverId(Long driverId) {
+        List<Ride> rides = rideRepository.findByUserIdAndRideStatusIn(
+                driverId,
+                List.of(RideStatus.COMPLETED, RideStatus.CANCELLED)
+        );
+
+        if (rides.isEmpty()) {
+            return List.of(); // no rides found
+        }
+        return rides.stream()
+                .map(ride -> mapRideToRideResponse(ride, "Ride fetched successfully"))
+                .toList();
+    }
+
     private RideResponse mapRideToRideResponse(Ride ride, String message) {
         RideResponse response = new RideResponse();
         response.setId(ride.getId());
@@ -397,16 +439,5 @@ public class RideService {
         response.setUpdatedAt(ride.getUpdatedAt());
         response.setMessage(message);
         return response;
-    }
-
-    // Dummy method for deriving coordinates from a location string
-    // In a real application, you'd integrate with a Geo-coding service.
-    private Double getLatitudeFromLocation(String location) {
-        // Simple hash-based dummy for demonstration
-        return (double) location.hashCode() % 90;
-    }
-    private Double getLongitudeFromLocation(String location) {
-        // Simple hash-based dummy for demonstration
-        return (double) location.hashCode() % 180;
     }
 }

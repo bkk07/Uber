@@ -73,6 +73,11 @@ public class NotificationServiceImpl implements NotificationService {
         return mapToResponse(updatedNotification);
     }
 
+    @Override
+    public Long getUnreadNotificationCount(String recipientId, String recipientType) {
+        return notificationRepository.findUnreadNotificationCountByRecipientIdAndRecipientType(recipientId, RecipientType.valueOf(recipientType));
+    }
+
     private NotificationResponse mapToResponse(Notification notification) {
         NotificationResponse response = new NotificationResponse();
         response.setNotificationId(notification.getNotificationId());

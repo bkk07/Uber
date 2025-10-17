@@ -16,7 +16,6 @@ public class Ride {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
     @Column(nullable = false)
     private Long userId;
     private Long driverId;
@@ -24,27 +23,19 @@ public class Ride {
     private String pickupLocation;
     @Column(nullable = false)
     private String dropLocation;
-
     // Latitude and longitude for the pickup location
     private Double pickupLocationLat;
-
     private Double pickupLocationLon;
-
     // Latitude and longitude for the drop location
     private Double dropLocationLat;
-
     private Double dropLocationLon;
-
-
     private Double fareEstimate;
-
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private RideStatus status;
 
     @Column(nullable = false)
     private LocalDateTime createdAt;
-
     private LocalDateTime updatedAt;
 
     @PrePersist
