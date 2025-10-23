@@ -10,6 +10,7 @@ import java.util.Optional;
 
 @Repository
 public interface RideRepository extends JpaRepository<Ride, Long> {
-    List<Ride> findByUserIdAndRideStatusIn(Long userId, List<RideStatus> completed);
-    // Custom query methods can be added here if needed
+    List<Ride> findByUserIdAndStatusIn(Long userId, List<RideStatus> completed);
+
+    List<Ride> findByDriverIdAndStatusIn(Long driverId, List<RideStatus> completed);
 }

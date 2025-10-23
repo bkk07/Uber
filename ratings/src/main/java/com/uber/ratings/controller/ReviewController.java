@@ -22,7 +22,9 @@ public class ReviewController {
 
     @PostMapping
     public ResponseEntity<ReviewResponse> addReview(@Valid @RequestBody ReviewRequest request) { // Change return type
+        System.out.println("New Review Request Received: " + request);
         ReviewResponse newReviewResponse = reviewService.addReview(request);
+        System.out.println("New Review Created: " + newReviewResponse);
         return new ResponseEntity<>(newReviewResponse, HttpStatus.CREATED);
     }
     // Fetching the Reviews By Reviews for the target for type(USER,DRIVER)
@@ -43,6 +45,7 @@ public class ReviewController {
     @GetMapping("/user/{userId}")
     public ResponseEntity<List<ReviewResponse>> getReviewsForUser(@PathVariable Long userId) {
         List<ReviewResponse> reviews = reviewService.getReviewsForTarget(userId, ReviewType.DRIVER_REVIEW);
+        System.out.println("Review By the User:"+reviews);
         return new ResponseEntity<>(reviews, HttpStatus.OK);
     }
     // Get Average Rating By the (userId or driverId) and the Type(User or Driver)

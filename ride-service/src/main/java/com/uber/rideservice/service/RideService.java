@@ -397,7 +397,7 @@ public class RideService {
     }
 
     public List<RideResponse> getRideByUserId(Long userId) {
-        List<Ride> rides = rideRepository.findByUserIdAndRideStatusIn(
+        List<Ride> rides = rideRepository.findByUserIdAndStatusIn(
                 userId,
                 List.of(RideStatus.COMPLETED, RideStatus.CANCELLED)
         );
@@ -413,7 +413,7 @@ public class RideService {
     }
 
     public List<RideResponse> getRideByDriverId(Long driverId) {
-        List<Ride> rides = rideRepository.findByUserIdAndRideStatusIn(
+        List<Ride> rides = rideRepository.findByDriverIdAndStatusIn(
                 driverId,
                 List.of(RideStatus.COMPLETED, RideStatus.CANCELLED)
         );

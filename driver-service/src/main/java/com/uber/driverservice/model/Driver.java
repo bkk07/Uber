@@ -46,6 +46,7 @@ public class Driver {
     private double latitude;
     private double longitude;
 
+
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;

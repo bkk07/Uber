@@ -13,6 +13,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/rides")
+@CrossOrigin(origins = "http://localhost:5173")
 public class RideController {
     private final RideService rideService;
     public RideController(RideService rideService) {
@@ -66,6 +67,7 @@ public class RideController {
         List<RideResponse> response = rideService.getRideByUserId(userId);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
+
     @GetMapping("/driver/{driverId}")
     public ResponseEntity<List<RideResponse>> getRideByDriverId(@PathVariable Long driverId) {
         List<RideResponse> response = rideService.getRideByDriverId(driverId);

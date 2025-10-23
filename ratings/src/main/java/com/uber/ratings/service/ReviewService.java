@@ -34,9 +34,9 @@ public class ReviewService {
     public List<ReviewResponse> getReviewsForTarget(Long targetId, ReviewType type) {
         List<Review> reviews;
         if (type != null) {
-            reviews = reviewRepository.findByTargetIdAndType(targetId, type);
+            reviews = reviewRepository.findByReviewerIdAndType(targetId, type);
         } else {
-            reviews = reviewRepository.findByTargetId(targetId);
+            reviews = reviewRepository.findByReviewerId(targetId);
         }
 
         if (reviews.isEmpty()) {
