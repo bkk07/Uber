@@ -25,19 +25,6 @@ import java.util.Optional;
 public class DriverController {
 
     private final DriverService driverService;
-//
-//    @GetMapping("/validate")
-//    public DriverAuthResponse driverExists(
-//            @RequestParam("loginId") String loginId,
-//            @RequestParam("password") String password
-//    ){
-//        return DriverAuthResponse.builder()
-//                .userId(1L)
-//                .role("DRIVER")
-//                .build();
-//    }
-
-
     @PostMapping("/register")
     public ResponseEntity<DriverResponse> createDriver(@Valid @RequestBody DriverRequest request) {
         DriverResponse newDriver = driverService.createDriver(request);
@@ -63,6 +50,7 @@ public class DriverController {
         List<DriverResponse> drivers = driverService.getAllDrivers();
         return new ResponseEntity<>(drivers, HttpStatus.OK);
     }
+
     @GetMapping("/available")
     public ResponseEntity<List<DriverResponse>> getAllAvailableDrivers() {
         List<DriverResponse> availableDrivers = driverService.getAllAvailableDrivers();
@@ -87,7 +75,6 @@ public class DriverController {
         driverService.updateStatus(id, status);
         return ;
     }
-
     @PutMapping("/{id}/location")
     public ResponseEntity<DriverResponse> updateLocation(
             @PathVariable Long id,
@@ -113,5 +100,11 @@ public class DriverController {
         DriverAuthResponse userAuthResponse =driverService.driverExists(loginId,password);
         System.out.println("This is the response going from driver-service to the auth-service"+userAuthResponse.toString());
         return ResponseEntity.ok(userAuthResponse);
+    }
+
+    @GetMapping("/{driverId}/available")
+    ResponseEntity<Boolean> getDriverAvailable(@PathVariable Long driverId){
+        Boolean isAvailable = driverService.isDriverAvailable(driverId);
+        return ResponseEntity.ok(isAvailable);
     }
 }

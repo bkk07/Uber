@@ -20,4 +20,5 @@ public interface DriverService {
     List<DriverResponse> getAllAvailableDrivers(); // Exposing the custom repository method
     List<DriverDto>     findNearestDriver(double pickupLat, double pickupLon, int limit);
     DriverAuthResponse driverExists(String loginId, String password);
+    Boolean isDriverAvailable(Long driverId);
 }

@@ -44,6 +44,8 @@ public class DriverServiceImpl implements DriverService {
                 .driverRole(DriverRole.DRIVER)
                 .latitude(request.getLatitude() != null ? request.getLatitude() : 0.0) // Default if not provided
                 .longitude(request.getLongitude() != null ? request.getLongitude() : 0.0) // Default if not provided
+                .vehicle(request.getVehicle())
+                .perKilometer(request.getPerKilometer())
                 .build();
 
         Driver savedDriver = driverRepository.save(driver);
@@ -129,6 +131,8 @@ public class DriverServiceImpl implements DriverService {
                 .latitude(driver.getLatitude())
                 .longitude(driver.getLongitude())
                 .createdAt(driver.getCreatedAt())
+                .perKilometer(driver.getPerKilometer())
+                .vehicle(driver.getVehicle())
                 .build();
     }
     @Override
@@ -148,6 +152,7 @@ public class DriverServiceImpl implements DriverService {
                         .build())
                 .toList();
     }
+
     private double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
         final int R = 6371; // Earth radius in km
         double latDistance = Math.toRadians(lat2 - lat1);
@@ -182,4 +187,16 @@ public class DriverServiceImpl implements DriverService {
         return userAuthResponse;
     }
 
+    @Override
+    public Boolean isDriverAvailable(Long driverId) {
+        Optional<Driver> driver = driverRepository.findById(driverId);
+        if(driver.isPresent()) {
+            if(driver.get().getStatus() == DriverStatus.ONLINE) {
+                return true;
+            }
+            return false;
+        }
+
+        return false;
+    }
 }

@@ -36,4 +36,9 @@ public class DriverRequest {
     @NotBlank(message = "Password cannot be empty")
     @Column(nullable = false)
     private String password;
+
+    @NotBlank(message = "Vehicle cannot be null")
+    private String vehicle;
+
+    private Long perKilometer;
 }

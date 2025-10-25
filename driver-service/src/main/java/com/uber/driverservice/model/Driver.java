@@ -26,6 +26,7 @@ public class Driver {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     @NotBlank(message = "Name cannot be blank")
     @Size(min = 2, max = 50, message = "Name must be between 2 and 50 characters")
     @Column(unique = true, nullable = false)
@@ -58,4 +59,17 @@ public class Driver {
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private DriverRole driverRole=DriverRole.DRIVER;
+
+    @NotBlank(message = "vehicle cannot be null")
+    @Column(nullable = false)
+    private String vehicle;
+
+
+
+    private Long perKilometer;
+
+
+    @OneToOne(mappedBy = "driver", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Photo profilePhoto;
+
 }
